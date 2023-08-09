@@ -6,3 +6,4 @@ class PaymentItem(StrEnum):
     MAILGUN = "mailgun"
     Jira = "jira"
     ONEPASSWD = "1password"
+    AZURE = "azure"
