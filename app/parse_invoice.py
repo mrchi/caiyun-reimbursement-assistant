@@ -1,3 +1,4 @@
+import pathlib
 import re
 from dataclasses import dataclass
 from decimal import Decimal
@@ -61,11 +62,18 @@ class InvoiceParser:
         pass
 
     @staticmethod
-    def read_pdf(filename) -> str:
-        with Document(filename) as doc:
+    def read_pdf(filename: bytes | str | pathlib.Path) -> str:
+        if isinstance(filename, bytes):
+            params = {"stream": filename}
+        elif isinstance(filename, (str, pathlib.Path)):
+            params = {"filename": filename}
+        else:
+            raise TypeError(f"Unsupported type: {type(filename)}")
+
+        with Document(**params) as doc:
             return "\n".join(page.get_text(sort=True) for page in doc)
 
-    def parse_info(self, filename) -> InvoiceInfo:
+    def parse_info(self, filename: bytes | str | pathlib.Path) -> InvoiceInfo:
         content = self.read_pdf(filename=filename)
 
         for keyword in INVOICE_KEYWORDS:
