@@ -10,36 +10,41 @@ from app.common import PaymentItem
 PAID_REGEX = {
     PaymentItem.GITHUB: r"Total\n\$(\d+\.\d{2}) USD\*",
     PaymentItem.MAILGUN: r"PAID\n\$(\d+\.\d{2})",
-    PaymentItem.Jira: r"Total Paid: USD (\d+\.\d{2})",
-    PaymentItem.ONEPASSWD: r"Paid\n\$(\d+\.\d{2})",
+    PaymentItem.JIRA: r"Total Paid: USD (\d+\.\d{2})",
+    PaymentItem.ONEPASSWD: r"Paid\n\$([\d,]+\.\d{2})",
+    PaymentItem.AZURE: r"Total Amount\nUSD ([\d,]+\.\d{2})",
 }
 
 SERVICE_START_REGEX = {
     PaymentItem.GITHUB: r"Date\n(\d{4}-\d{2}-\d{2})",
-    PaymentItem.MAILGUN: r"Foundation\n(\w+ \d{1,2}, \d{4}) - \w+ \d{1,2}, \d{4}",
-    PaymentItem.Jira: r"Billing Period: (\w+ \d{1,2}, \d{4}) - \w+ \d{1,2}, \d{4}",
+    PaymentItem.MAILGUN: r"Foundation\n\d\n.+?\n(\w+ \d{1,2}, \d{4}) - \w+ \d{1,2}, \d{4}",  # noqa: E501
+    PaymentItem.JIRA: r"Billing Period: (\w+ \d{1,2}, \d{4}) - \w+ \d{1,2}, \d{4}",
     PaymentItem.ONEPASSWD: r"(\w+ \d{1,2}, \d{4}) to \w+ \d{1,2}, \d{4}",
+    PaymentItem.AZURE: r"This invoice is for the billing period (\d{2}/\d{2}/\d{4}) - \d{2}/\d{2}/\d{4}",  # noqa: E501
 }
 
 SERVICE_THROUGH_REGEX = {
     PaymentItem.GITHUB: r"For service through\n(\d{4}-\d{2}-\d{2})",
-    PaymentItem.MAILGUN: r"Foundation\n\w+ \d{1,2}, \d{4} - (\w+ \d{1,2}, \d{4})",
-    PaymentItem.Jira: r"Billing Period: \w+ \d{1,2}, \d{4} - (\w+ \d{1,2}, \d{4})",
+    PaymentItem.MAILGUN: r"Foundation\n\d\n.+?\n\w+ \d{1,2}, \d{4} - (\w+ \d{1,2}, \d{4})",  # noqa: E501
+    PaymentItem.JIRA: r"Billing Period: \w+ \d{1,2}, \d{4} - (\w+ \d{1,2}, \d{4})",
     PaymentItem.ONEPASSWD: r"\w+ \d{1,2}, \d{4} to (\w+ \d{1,2}, \d{4})",
+    PaymentItem.AZURE: r"This invoice is for the billing period \d{2}/\d{2}/\d{4} - (\d{2}/\d{2}/\d{4})",  # noqa: E501
 }
 
 DATE_FORMAT = {
     PaymentItem.GITHUB: "YYYY-MM-DD",
     PaymentItem.MAILGUN: "MMM D, YYYY",
-    PaymentItem.Jira: "MMM D, YYYY",
+    PaymentItem.JIRA: "MMM D, YYYY",
     PaymentItem.ONEPASSWD: "MMMM D, YYYY",
+    PaymentItem.AZURE: "MM/DD/YYYY",
 }
 
 INVOICE_KEYWORDS = {
     "GitHub, Inc": PaymentItem.GITHUB,
     "Mailgun Technologies, Inc": PaymentItem.MAILGUN,
-    "Atlassian Pty Ltd": PaymentItem.Jira,
+    "Atlassian Pty Ltd": PaymentItem.JIRA,
     "1Password": PaymentItem.ONEPASSWD,
+    "Microsoft Corporation": PaymentItem.AZURE,
 }
 
 
@@ -52,53 +57,46 @@ class InvoiceInfo:
 
 
 class InvoiceParser:
-    def __init__(self, filename, keywords: dict[str, PaymentItem] = INVOICE_KEYWORDS):
-        self.contents = self.read_pdf(filename=filename)
-        self.payment_item = self.get_payment_item(keywords=keywords)
-        self.filename = filename
-
-    def __repr__(self):
-        return f"<InvoiceParser payment_item={self.payment_item!r} filename={self.filename!r}>"  # noqa: E501
+    def __init__(self):
+        pass
 
     @staticmethod
     def read_pdf(filename) -> str:
         with Document(filename) as doc:
-            return "\n".join(page.get_text() for page in doc)
+            return "\n".join(page.get_text(sort=True) for page in doc)
 
-    def get_payment_item(self, keywords: dict[str, PaymentItem]) -> PaymentItem:
-        for keyword in keywords:
-            if keyword in self.contents:
-                return keywords[keyword]
+    def parse_info(self, filename) -> InvoiceInfo:
+        content = self.read_pdf(filename=filename)
 
-        raise ValueError("Could not match any payment item")
+        for keyword in INVOICE_KEYWORDS:
+            if keyword in content:
+                payment_item = INVOICE_KEYWORDS[keyword]
+                break
+        else:
+            raise ValueError(f"Could not match any payment item for {filename}")
 
-    def parse_info(self) -> InvoiceInfo:
-        paid_match = re.search(PAID_REGEX[self.payment_item], self.contents)
+        paid_match = re.search(PAID_REGEX[payment_item], content)
         if not paid_match:
-            raise ValueError("Could not find paid amount")
-        paid = Decimal(paid_match.group(1))
+            raise ValueError(f"Could not find paid amount for {filename}")
+        paid = Decimal(paid_match.group(1).replace(",", ""))
 
-        service_start_match = re.search(
-            SERVICE_START_REGEX[self.payment_item], self.contents
-        )
+        service_start_match = re.search(SERVICE_START_REGEX[payment_item], content)
         if not service_start_match:
-            raise ValueError("Could not find service start date")
+            raise ValueError(f"Could not find service start date for {filename}")
         service_start = arrow.get(
-            service_start_match.group(1), DATE_FORMAT[self.payment_item]
+            service_start_match.group(1), DATE_FORMAT[payment_item]
         ).format("YYYY-MM-DD")
 
-        service_through_match = re.search(
-            SERVICE_THROUGH_REGEX[self.payment_item], self.contents
-        )
+        service_through_match = re.search(SERVICE_THROUGH_REGEX[payment_item], content)
         if not service_through_match:
-            raise ValueError("Could not find service through date")
+            raise ValueError(f"Could not find service through date for {filename}")
         service_through = arrow.get(
             service_through_match.group(1),
-            DATE_FORMAT[self.payment_item],
+            DATE_FORMAT[payment_item],
         ).format("YYYY-MM-DD")
 
         return InvoiceInfo(
-            payment_item=self.payment_item,
+            payment_item=payment_item,
             paid=paid,
             service_start=service_start,
             service_through=service_through,
