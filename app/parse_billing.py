@@ -1,3 +1,4 @@
+import pathlib
 import re
 from dataclasses import dataclass
 from decimal import Decimal
@@ -30,7 +31,7 @@ class BillingParser:
             access_key_secret=aliyun_access_key_secret,
         )
 
-    def parse_info(self, filename) -> BillingInfo:
+    def parse_info(self, filename: bytes | str | pathlib.Path) -> BillingInfo:
         content = self.aliyun_ocr_client.request(filename=filename)
         lower_content = content.replace(" ", "").lower()
 
