@@ -9,7 +9,6 @@ openai = "*"
 pymupdf = "*"
 arrow = "*"
 alibabacloud-ocr-api20210707 = "*"
-alibabacloud-darabonba-stream = "*"
 
 [dev-packages]
 black = "*"

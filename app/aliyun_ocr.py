@@ -1,7 +1,8 @@
+from io import BytesIO
 import json
+import pathlib
 import alibabacloud_ocr_api20210707.client
 import alibabacloud_tea_openapi.models
-import alibabacloud_darabonba_stream.client
 import alibabacloud_ocr_api20210707.models
 import alibabacloud_tea_util.models
 
@@ -14,8 +15,19 @@ class AliyunOCR:
         config.endpoint = "ocr-api.cn-hangzhou.aliyuncs.com"
         self.client = alibabacloud_ocr_api20210707.client.Client(config)
 
-    def request(self, filename) -> str:
-        body = alibabacloud_darabonba_stream.client.Client.read_from_file_path(filename)
+    def request(self, filename: bytes | str | pathlib.Path) -> str:
+        if isinstance(filename, (str, pathlib.Path)):
+            with open(filename, "rb") as f:
+                file_content = f.read()
+        elif isinstance(filename, bytes):
+            file_content = filename
+        else:
+            raise TypeError(f"Unknown type {type(filename)} for filename")
+
+        body = BytesIO()
+        body.write(file_content)
+        body.seek(0)
+
         recognize_general_request = (
             alibabacloud_ocr_api20210707.models.RecognizeGeneralRequest(body=body)
         )
