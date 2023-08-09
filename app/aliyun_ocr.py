@@ -1,9 +1,10 @@
-from io import BytesIO
 import json
 import pathlib
+from io import BytesIO
+
 import alibabacloud_ocr_api20210707.client
-import alibabacloud_tea_openapi.models
 import alibabacloud_ocr_api20210707.models
+import alibabacloud_tea_openapi.models
 import alibabacloud_tea_util.models
 
 
