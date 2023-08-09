@@ -4,6 +4,6 @@ from enum import StrEnum
 class PaymentItem(StrEnum):
     GITHUB = "github"
     MAILGUN = "mailgun"
-    Jira = "jira"
+    JIRA = "jira"
     ONEPASSWD = "1password"
     AZURE = "azure"

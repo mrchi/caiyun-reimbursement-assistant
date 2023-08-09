@@ -8,7 +8,7 @@ from app.common import PaymentItem
 BILLING_KEYWORDS = {
     "github": PaymentItem.GITHUB,
     "mailgun": PaymentItem.MAILGUN,
-    "atlassian": PaymentItem.Jira,
+    "atlassian": PaymentItem.JIRA,
     "1password": PaymentItem.ONEPASSWD,
     "microsoft": PaymentItem.AZURE,
 }
