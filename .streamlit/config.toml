@@ -1,0 +1,10 @@
+[global]
+disableWatchdogWarning = true
+
+[server]
+headless = true
+runOnSave = true
+port = 8000
+
+[browser]
+gatherUsageStats = false
