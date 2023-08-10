@@ -517,3 +517,5 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/macos,linux,windows,python,go,visualstudiocode,vim,pycharm,flask,django
 
 .streamlit/secrets.toml
+data/*
+!data/.gitkeep
