@@ -93,7 +93,7 @@ class InvoiceParser:
             raise ValueError(f"Could not find service start date for {filename}")
         service_start = arrow.get(
             service_start_match.group(1), DATE_FORMAT[payment_item]
-        ).format("YYYY-MM-DD")
+        ).format("YYYY.MM.DD")
 
         service_through_match = re.search(SERVICE_THROUGH_REGEX[payment_item], content)
         if not service_through_match:
@@ -101,7 +101,7 @@ class InvoiceParser:
         service_through = arrow.get(
             service_through_match.group(1),
             DATE_FORMAT[payment_item],
-        ).format("YYYY-MM-DD")
+        ).format("YYYY.MM.DD")
 
         return InvoiceInfo(
             payment_item=payment_item,
