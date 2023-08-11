@@ -5,6 +5,7 @@ from decimal import Decimal
 from io import BytesIO
 
 import arrow
+import fitz
 import openpyxl
 import streamlit as st
 from streamlit.runtime.uploaded_file_manager import UploadedFile
@@ -66,7 +67,7 @@ class StreamlitApp:
     ) -> tuple[
         list[tuple[UploadedFile, InvoiceInfo]], list[tuple[UploadedFile, BillingInfo]]
     ]:
-        st.header("数据输入")
+        st.header("上传")
         col1, col2 = st.columns(2)
 
         with col1:
@@ -122,7 +123,7 @@ class StreamlitApp:
         invoice_result: list[tuple[UploadedFile, InvoiceInfo]],
         billing_result: list[tuple[UploadedFile, BillingInfo]],
     ) -> list[PaymentItemData]:
-        st.header("数据校验")
+        st.header("校验")
         st.write("按 payment_item 分别校验账单中金额和信用卡还款截图中金额匹配。")
 
         invoices: dict[
@@ -185,10 +186,36 @@ class StreamlitApp:
 
         return payment_items
 
-    def part3_generate_reimbursement_application(
+    def part3_generate_copies(self, payment_items: list[PaymentItemData]):
+        st.subheader("生成飞书审批文案")
+
+        st.write("报销事由")
+        total_usd = sum([item.usd_amount for item in payment_items], start=Decimal(0))
+        st.code(
+            "\n".join(
+                [
+                    (
+                        f"{item.payment_item.capitalize()}"
+                        f"({item.payment_item.description}) 付款 USD {item.usd_amount}"
+                    )
+                    for item in payment_items
+                ]
+                + ["----------", f"共计 USD {total_usd}"]
+            ),
+            language=None,
+        )
+        st.write("费用明细")
+        for item in payment_items:
+            st.code(
+                f"{item.payment_item.capitalize()}({item.payment_item.description}) "
+                f"付款周期 {item.service_start} - {item.service_through}"
+            )
+            st.code(item.rmb_amount)
+
+    def part4_generate_reimbursement_application(
         self, payment_items: list[PaymentItemData]
     ):
-        st.header("生成彩云报销单")
+        st.subheader("生成彩云报销单")
 
         workbook = openpyxl.load_workbook(self.application_tpl, keep_vba=True)
         sheet = workbook["日常报销单"]
@@ -207,38 +234,58 @@ class StreamlitApp:
             sheet[f"E{row}"] = item.payment_item.capitalize()
             sheet[f"G{row}"] = str(item.rmb_amount)
 
-        filename = f"{self.application_submitter}-{today.format('YYYYMMDD')}.xlsx"
         fp = BytesIO()
         workbook.save(fp)
+        filename = f"{self.application_submitter}-{today.format('YYYYMMDD')}.xlsx"
 
         st.success("报销单生成成功！")
         st.download_button(label="下载报销单", data=fp, file_name=filename)
 
-    def part4_generate_copies(self, payment_items: list[PaymentItemData]):
-        st.header("生成飞书审批文案")
+    def part5_generate_billing_pdf(self, payment_items: list[PaymentItemData]):
+        st.subheader("生成还款截图 PDF")
 
-        st.subheader("报销事由")
-        total_usd = sum([item.usd_amount for item in payment_items], start=Decimal(0))
-        st.code(
-            "\n".join(
-                [
-                    (
-                        f"{item.payment_item.capitalize()}"
-                        f"({item.payment_item.description}) 付款 USD {item.usd_amount}"
-                    )
-                    for item in payment_items
-                ]
-                + ["----------", f"共计 USD {total_usd}"]
-            ),
-            language=None,
-        )
-        st.subheader("费用明细")
-        for item in payment_items:
-            st.code(
-                f"{item.payment_item.capitalize()}({item.payment_item.description}) "
-                f"付款周期 {item.service_start} - {item.service_through}"
+        billing_files = sum([item.billing_files for item in payment_items], start=[])
+
+        page_width, page_height = fitz.paper_size("A4-L")
+        images_per_page = 4
+        page_margin = 20
+        inner_margin = 10
+        image_rects = [
+            fitz.Rect(
+                (page_width - 2 * page_margin - (images_per_page - 1) * inner_margin)
+                / images_per_page
+                * idx
+                + page_margin
+                + inner_margin * idx,
+                0,
+                (page_width - 2 * page_margin - (images_per_page - 1) * inner_margin)
+                / images_per_page
+                * (idx + 1)
+                + page_margin
+                + inner_margin * idx,
+                page_height,
             )
-            st.code(item.rmb_amount)
+            for idx in range(images_per_page)
+        ]
+
+        billing_pdf = fitz.Document()
+        current_page = None
+        for idx, file in enumerate(billing_files):
+            page_idx = idx % images_per_page
+            if not current_page or page_idx == 0:
+                current_page = billing_pdf.new_page(
+                    pno=-1, width=page_width, height=page_height
+                )
+            current_page.insert_image(image_rects[page_idx], stream=file.getvalue())
+
+        fp = BytesIO()
+        billing_pdf.ez_save(fp)
+        st.success("还款截图 PDF 生成成功！")
+        st.download_button(
+            label="下载还款截图 PDF",
+            data=fp,
+            file_name=f"还款截图-{arrow.now(tz='Asia/Shanghai').format('YYYYMMDD')}.pdf",
+        )
 
     def run(self):
         st.set_page_config(layout="wide")
@@ -253,12 +300,14 @@ class StreamlitApp:
 
         st.divider()
 
+        st.header("生成")
         col1, col2 = st.columns(2)
 
         with col1:
-            self.part4_generate_copies(payment_items)
+            self.part3_generate_copies(payment_items)
         with col2:
-            self.part3_generate_reimbursement_application(payment_items)
+            self.part4_generate_reimbursement_application(payment_items)
+            self.part5_generate_billing_pdf(payment_items)
 
 
 if __name__ == "__main__":
