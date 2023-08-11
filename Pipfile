@@ -9,6 +9,7 @@ openai = "*"
 pymupdf = "*"
 arrow = "*"
 alibabacloud-ocr-api20210707 = "*"
+openpyxl = "*"
 
 [dev-packages]
 black = "*"
