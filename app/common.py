@@ -9,6 +9,16 @@ class PaymentItem(StrEnum):
     ONEPASSWD = "1password"
 
     @property
+    def name(self):
+        return {
+            self.JIRA: "Jira",
+            self.MAILGUN: "Mailgun",
+            self.AZURE: "Azure",
+            self.GITHUB: "GitHub",
+            self.ONEPASSWD: "1Password",
+        }[self]
+
+    @property
     def description(self):
         return {
             self.JIRA: "缺陷跟踪管理系统",

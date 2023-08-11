@@ -199,19 +199,19 @@ class StreamlitApp:
             "\n".join(
                 [
                     (
-                        f"{item.payment_item.capitalize()}"
-                        f"({item.payment_item.description}) 付款 USD {item.usd_amount}"
+                        f"{item.payment_item.name}"
+                        f"({item.payment_item.description}) 付款 USD {item.usd_amount}；"
                     )
                     for item in payment_items
                 ]
-                + ["----------", f"共计 USD {total_usd}"]
+                + ["----------", f"共计 USD {total_usd}。"]
             ),
             language=None,
         )
         st.write("费用明细")
         for item in payment_items:
             st.code(
-                f"{item.payment_item.capitalize()}({item.payment_item.description}) "
+                f"{item.payment_item.name}({item.payment_item.description}) "
                 f"付款周期 {item.service_start} - {item.service_through}"
             )
             st.code(item.rmb_amount)
