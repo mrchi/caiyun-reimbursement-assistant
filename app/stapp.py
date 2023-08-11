@@ -33,13 +33,17 @@ class StreamlitApp:
         self.billing_parser = BillingParser(
             st.secrets.aliyun_ocr.access_key_id, st.secrets.aliyun_ocr.access_key_secret
         )
-        # 报销申请表变量初始化
-        self.application_tpl = pathlib.Path(
+
+        # 报销申请表 sheet 初始化
+        application_tpl_path = pathlib.Path(
             st.secrets.reimbursement_application.template_path
         )
-        if not self.application_tpl.exists() or not self.application_tpl.is_file():
+        if not application_tpl_path.exists() or not application_tpl_path.is_file():
             st.error("报销申请表模板文件不存在！")
             st.stop()
+        self.workbook = openpyxl.load_workbook(application_tpl_path, keep_vba=True)
+        self.worksheet = self.workbook["日常报销单"]
+
         self.application_submitter = st.secrets.reimbursement_application.submitter
 
     @st.cache_data(persist=True)
@@ -217,25 +221,23 @@ class StreamlitApp:
     ):
         st.subheader("生成彩云报销单")
 
-        workbook = openpyxl.load_workbook(self.application_tpl, keep_vba=True)
-        sheet = workbook["日常报销单"]
         today = arrow.now(tz="Asia/Shanghai")
 
-        sheet["C5"] = self.application_submitter
-        sheet["F5"] = today.format("YYYY.MM")
-        sheet["C42"] = self.application_submitter
-        sheet["F42"] = today.format("YYYY.MM.DD")
+        self.worksheet["C5"] = self.application_submitter
+        self.worksheet["F5"] = today.format("YYYY.MM")
+        self.worksheet["C42"] = self.application_submitter
+        self.worksheet["F42"] = today.format("YYYY.MM.DD")
 
         for index, item in enumerate(payment_items):
             row = index + 9
-            sheet[f"B{row}"] = item.service_start
-            sheet[f"C{row}"] = "200300"
-            sheet[f"D{row}"] = "软件"
-            sheet[f"E{row}"] = item.payment_item.capitalize()
-            sheet[f"G{row}"] = str(item.rmb_amount)
+            self.worksheet[f"B{row}"] = item.service_start
+            self.worksheet[f"C{row}"] = "200300"
+            self.worksheet[f"D{row}"] = "软件"
+            self.worksheet[f"E{row}"] = item.payment_item.capitalize()
+            self.worksheet[f"G{row}"] = item.rmb_amount
 
         fp = BytesIO()
-        workbook.save(fp)
+        self.workbook.save(fp)
         filename = f"{self.application_submitter}-{today.format('YYYYMMDD')}.xlsx"
 
         st.success("报销单生成成功！")
