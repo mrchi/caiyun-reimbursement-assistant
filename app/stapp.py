@@ -96,10 +96,10 @@ class StreamlitApp:
             st.table({file.name: info for file, info in invoice_result})
 
         with col2:
-            st.subheader("上传信用卡还款截图")
-            st.caption("目前仅支持：招商银行信用卡设置外币消费人民币入账，在掌上生活 App 的还款截图。")
+            st.subheader("上传信用卡消费截图")
+            st.caption("目前仅支持：招商银行信用卡设置外币消费人民币入账，在掌上生活 App 的消费截图。")
             billing_files = self.st_unique_file_uploader(
-                label="上传信用卡还款截图（支持多选）",
+                label="上传信用卡消费截图（支持多选）",
                 type=["png", "jpg", "jpeg"],
                 accept_multiple_files=True,
             )
@@ -113,11 +113,11 @@ class StreamlitApp:
             )
             billing_result.sort(key=lambda x: (x[1].payment_item, x[1].usd_amount))
 
-            st.write("信用卡还款截图解析结果：")
+            st.write("信用卡消费截图解析结果：")
             st.table({file.name: info for file, info in billing_result})
 
         if not (invoice_result and billing_result):
-            st.info("请上传账单 PDF 和信用卡还款截图。")
+            st.info("请上传账单 PDF 和信用卡消费截图。")
             st.stop()
 
         return invoice_result, billing_result
@@ -128,7 +128,7 @@ class StreamlitApp:
         billing_result: list[tuple[UploadedFile, BillingInfo]],
     ) -> list[PaymentItemData]:
         st.header("校验")
-        st.write("按 payment_item 分别校验账单中金额和信用卡还款截图中金额匹配。")
+        st.write("按 payment_item 分别校验账单中金额和信用卡消费截图中金额匹配。")
 
         invoices: dict[
             PaymentItem, list[tuple[UploadedFile, InvoiceInfo]]
@@ -154,7 +154,7 @@ class StreamlitApp:
             if invoice_amount != billing_amount:
                 st.error(
                     f"[{payment_item}]账单金额 {invoice_amount} "
-                    f"与还款金额 {billing_amount} 不相等"
+                    f"与消费金额 {billing_amount} 不相等"
                 )
                 st.stop()
             if invoice_amount != Decimal(0):
@@ -244,7 +244,7 @@ class StreamlitApp:
         st.download_button(label="下载报销单", data=fp, file_name=filename)
 
     def part5_generate_billing_pdf(self, payment_items: list[PaymentItemData]):
-        st.subheader("生成还款截图 PDF")
+        st.subheader("生成消费截图 PDF")
 
         billing_files = sum([item.billing_files for item in payment_items], start=[])
 
@@ -282,17 +282,17 @@ class StreamlitApp:
 
         fp = BytesIO()
         billing_pdf.ez_save(fp)
-        st.success("还款截图 PDF 生成成功！")
+        st.success("消费截图 PDF 生成成功！")
         st.download_button(
-            label="下载还款截图 PDF",
+            label="下载消费截图 PDF",
             data=fp,
-            file_name=f"还款截图-{arrow.now(tz='Asia/Shanghai').format('YYYYMMDD')}.pdf",
+            file_name=f"消费截图-{arrow.now(tz='Asia/Shanghai').format('YYYYMMDD')}.pdf",
         )
 
     def run(self):
         st.set_page_config(layout="wide")
         st.title("彩云报销小助手 V2.0")
-        st.write("上传账单 PDF 和信用卡还款截图，自动生成报销单和飞书审批内容。")
+        st.write("上传账单 PDF 和信用卡消费截图，自动生成报销单和飞书审批内容。")
 
         invoice_result, billing_result = self.part1_input_data()
 
