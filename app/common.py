@@ -27,3 +27,13 @@ class PaymentItem(StrEnum):
             self.GITHUB: "GitHub 组织账号",
             self.ONEPASSWD: "密码管理工具",
         }[self]
+
+    @property
+    def printing_pages(self):
+        return {
+            self.JIRA: (0, 1),
+            self.MAILGUN: (0, 1),
+            self.AZURE: (0, 1),
+            self.GITHUB: (0,),
+            self.ONEPASSWD: (0,),
+        }[self]

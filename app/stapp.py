@@ -243,8 +243,10 @@ class StreamlitApp:
         st.success("报销单生成成功！")
         st.download_button(label="下载报销单", data=fp, file_name=filename)
 
-    def part5_generate_billing_pdf(self, payment_items: list[PaymentItemData]):
-        st.subheader("生成消费截图 PDF")
+    def part5_generate_billing_pdf(
+        self, payment_items: list[PaymentItemData]
+    ) -> BytesIO:
+        st.subheader("生成信用卡消费截图 PDF")
 
         billing_files = sum([item.billing_files for item in payment_items], start=[])
 
@@ -282,11 +284,39 @@ class StreamlitApp:
 
         fp = BytesIO()
         billing_pdf.ez_save(fp)
-        st.success("消费截图 PDF 生成成功！")
+        st.success("信用卡消费截图 PDF 生成成功！")
         st.download_button(
-            label="下载消费截图 PDF",
+            label="下载信用卡消费截图 PDF",
             data=fp,
-            file_name=f"消费截图-{arrow.now(tz='Asia/Shanghai').format('YYYYMMDD')}.pdf",
+            file_name=f"信用卡消费截图-{arrow.now(tz='Asia/Shanghai').format('YYYYMMDD')}.pdf",
+        )
+        return fp
+
+    def part6_generate_allinone_pdf_for_printing(
+        self, payment_items: list[PaymentItemData], billing_pdf: BytesIO
+    ):
+        st.subheader("生成用于打印的 All-in-One PDF")
+
+        page_width, page_height = fitz.paper_size("A4")
+        allinone_pdf = fitz.Document(width=page_width, height=page_height)
+
+        for item_data in payment_items:
+            for file in item_data.invoice_files:
+                invoice_pdf = fitz.Document(stream=file.getvalue())
+                for pno in item_data.payment_item.printing_pages:
+                    allinone_pdf.insert_pdf(invoice_pdf, from_page=pno, to_page=pno)
+            if allinone_pdf.page_count % 2 == 1:
+                allinone_pdf.new_page(pno=-1, width=page_width, height=page_height)
+
+        allinone_pdf.insert_pdf(fitz.Document(stream=billing_pdf.getvalue()), rotate=90)
+
+        fp = BytesIO()
+        allinone_pdf.ez_save(fp)
+        st.success("All-in-One PDF 生成成功！")
+        st.download_button(
+            label="下载 All-in-One PDF",
+            data=fp,
+            file_name=f"打印用 AllInOne -{arrow.now(tz='Asia/Shanghai').format('YYYYMMDD')}.pdf",  # noqa: E501
         )
 
     def run(self):
@@ -309,7 +339,8 @@ class StreamlitApp:
             self.part3_generate_copies(payment_items)
         with col2:
             self.part4_generate_reimbursement_application(payment_items)
-            self.part5_generate_billing_pdf(payment_items)
+            billing_pdf = self.part5_generate_billing_pdf(payment_items)
+            self.part6_generate_allinone_pdf_for_printing(payment_items, billing_pdf)
 
 
 if __name__ == "__main__":
