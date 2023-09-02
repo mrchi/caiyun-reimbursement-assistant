@@ -5,7 +5,6 @@ name = "pypi"
 
 [packages]
 streamlit = "*"
-openai = "*"
 pymupdf = "*"
 arrow = "*"
 alibabacloud-ocr-api20210707 = "*"
