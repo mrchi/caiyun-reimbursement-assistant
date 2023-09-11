@@ -139,11 +139,11 @@
         },
         "alibabacloud-ocr-api20210707": {
             "hashes": [
-                "sha256:52c57fa3a7f42c9d4c1929579423d434d1b5b3c06031295146d711d8b7e421b2",
-                "sha256:987ffa6035326621449c1303448e9f6ed463147d465ceca4cb2c29a1dc3e88b0"
+                "sha256:3c4a4adda8c5ce938f754ebb13047a230e3216b3b730203b6a8efe3d76cfff0f",
+                "sha256:fec62710f9902142bce3a70bca1fe0bd0913360c9e7640d238d6735860970670"
             ],
             "index": "pypi",
-            "version": "==1.1.16"
+            "version": "==1.2.0"
         },
         "alibabacloud-openapi-util": {
             "hashes": [
@@ -1579,7 +1579,7 @@
                 "sha256:5eb9f55eb0650e81de6b7e34308d8b92d04fe4ec41cd8193a913979e33d8e1a5",
                 "sha256:60294b2d5b869356c893f57b1a877ea6510d60d45cf4b38057f1672d85699ac9"
             ],
-            "markers": "python_version >= '3.8'",
+            "markers": "python_full_version >= '3.8.0'",
             "version": "==8.3.1"
         },
         "jupyter-core": {
@@ -1587,7 +1587,7 @@
                 "sha256:5ba5c7938a7f97a6b0481463f7ff0dbac7c15ba48cf46fa4035ca6e838aa1aba",
                 "sha256:ae9036db959a71ec1cac33081eeb040a79e681f08ab68b0883e9a676c7a90dce"
             ],
-            "markers": "python_version >= '3.8'",
+            "markers": "python_full_version >= '3.8.0'",
             "version": "==5.3.1"
         },
         "matplotlib-inline": {
@@ -1674,7 +1674,7 @@
                 "sha256:cf61ae8f126ac6f7c451172cf30e3e43d3ca77615509771b3a984a0730651e12",
                 "sha256:d89c696a773f8bd377d18e5ecda92b7a3793cbe66c87060a6fb58c7b6e1061f7"
             ],
-            "markers": "python_version >= '3.8'",
+            "markers": "python_full_version >= '3.8.0'",
             "version": "==1.3.0"
         },
         "prompt-toolkit": {
@@ -1724,7 +1724,7 @@
                 "sha256:259bcc17857d8a8b3b4a2327324b79e5f020a13c16074670f9c8c8f872ea76d0",
                 "sha256:5d1013ba8dc7895b548be5afb05740ca82454fd899971563d2ef625d090326f8"
             ],
-            "markers": "python_version >= '3.8'",
+            "markers": "python_full_version >= '3.8.0'",
             "version": "==2.11.0"
         },
         "pyflakes": {
@@ -1732,7 +1732,7 @@
                 "sha256:4132f6d49cb4dae6819e5379898f2b8cce3c5f23994194c24b77d5da2e36f774",
                 "sha256:a0aae034c444db0071aa077972ba4768d40c830d9539fd45bf4cd3f8f6992efc"
             ],
-            "markers": "python_version >= '3.8'",
+            "markers": "python_full_version >= '3.8.0'",
             "version": "==3.1.0"
         },
         "pygments": {
