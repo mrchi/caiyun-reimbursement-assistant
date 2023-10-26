@@ -42,7 +42,7 @@ DATE_FORMAT = {
 
 INVOICE_KEYWORDS = {
     "GitHub, Inc": PaymentItem.GITHUB,
-    "Mailgun Technologies, Inc": PaymentItem.MAILGUN,
+    "Mailgun": PaymentItem.MAILGUN,
     "Atlassian Pty Ltd": PaymentItem.JIRA,
     "1Password": PaymentItem.ONEPASSWD,
     "Microsoft Corporation": PaymentItem.AZURE,
