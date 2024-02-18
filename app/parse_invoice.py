@@ -12,7 +12,7 @@ PAID_REGEX = {
     PaymentItem.GITHUB: r"Total\n\$(\d+\.\d{2}) USD\*",
     PaymentItem.MAILGUN: r"PAID\n\$(\d+\.\d{2})",
     PaymentItem.JIRA: r"Total Paid: USD (\d+\.\d{2})",
-    PaymentItem.ONEPASSWD: r"Paid\n\$([\d,]+\.\d{2})",
+    PaymentItem.ONEPASSWD: r"Amount paid\n\$([\d,]+\.\d{2}) USD",
     PaymentItem.AZURE: r"Total Amount\nUSD ([\d,]+\.\d{2})",
 }
 
@@ -20,7 +20,7 @@ SERVICE_START_REGEX = {
     PaymentItem.GITHUB: r"Date\n(\d{4}-\d{2}-\d{2})",
     PaymentItem.MAILGUN: r"Foundation\n\d\n.+?\n(\w+ \d{1,2}, \d{4}) - \w+ \d{1,2}, \d{4}",  # noqa: E501
     PaymentItem.JIRA: r"Billing Period: (\w+ \d{1,2}, \d{4}) - \w+ \d{1,2}, \d{4}",
-    PaymentItem.ONEPASSWD: r"(\w+ \d{1,2}, \d{4}) to \w+ \d{1,2}, \d{4}",
+    PaymentItem.ONEPASSWD: r"((?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4})\s+to\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4}",  # noqa: E501
     PaymentItem.AZURE: r"This invoice is for the billing period (\d{2}/\d{2}/\d{4}) - \d{2}/\d{2}/\d{4}",  # noqa: E501
 }
 
@@ -28,7 +28,7 @@ SERVICE_THROUGH_REGEX = {
     PaymentItem.GITHUB: r"For service through\n(\d{4}-\d{2}-\d{2})",
     PaymentItem.MAILGUN: r"Foundation\n\d\n.+?\n\w+ \d{1,2}, \d{4} - (\w+ \d{1,2}, \d{4})",  # noqa: E501
     PaymentItem.JIRA: r"Billing Period: \w+ \d{1,2}, \d{4} - (\w+ \d{1,2}, \d{4})",
-    PaymentItem.ONEPASSWD: r"\w+ \d{1,2}, \d{4} to (\w+ \d{1,2}, \d{4})",
+    PaymentItem.ONEPASSWD: r"(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4}\s+to\s+((?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4})",  # noqa: E501
     PaymentItem.AZURE: r"This invoice is for the billing period \d{2}/\d{2}/\d{4} - (\d{2}/\d{2}/\d{4})",  # noqa: E501
 }
 
